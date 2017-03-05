@@ -271,5 +271,9 @@ def process_bi_statistic_for_today():
         process_bi_statistic('today')
 
 
+@manager.command
+def preset_cache():
+
+
 if __name__ == "__main__":
     manager.run()

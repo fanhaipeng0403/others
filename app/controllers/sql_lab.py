@@ -1,16 +1,15 @@
-import sqlparse
 import hashlib
-import os
 
+import sqlparse
 from flask import Blueprint, render_template, request, jsonify, send_from_directory
-from flask_login import login_required, current_user
 from flask import current_app as app
+from flask_login import login_required, current_user
 
-from app.tasks.sql_lab import get_sql_results
-from app.extensions import db
-from app.utils import error_msg_from_exception, timeout
-from app.models.main import AdminUserQuery
 from app.constants import ADMIN_USER_QUERY_STATUSES, SQL_RESULT_STRATEGIES, ADMIN_USER_ROLES
+from app.extensions import db
+from app.models.main import AdminUserQuery
+from app.tasks.sql_lab import get_sql_results
+from app.utils import error_msg_from_exception, timeout
 
 sql_lab = Blueprint('sql_lab', __name__)
 
@@ -24,7 +23,8 @@ def index():
 @sql_lab.route("/sql_lab/query_histories", methods=["GET"])
 @login_required
 def query_histories():
-    queries = db.session.query(AdminUserQuery).filter_by(admin_user_id=current_user.id).order_by(AdminUserQuery.updated_at.desc()).limit(10)
+    queries = db.session.query(AdminUserQuery).filter_by(admin_user_id=current_user.id).order_by(
+        AdminUserQuery.updated_at.desc()).limit(10)
     return jsonify(data=[i.to_dict() for i in queries.all()])
 
 
@@ -71,13 +71,14 @@ def execute_sql():
 
     query_id = query.id
 
-    permission = current_user.has_role(ADMIN_USER_ROLES.ROOT.value) or current_user.has_role(ADMIN_USER_ROLES.ADMIN.value)
+    permission = current_user.has_role(ADMIN_USER_ROLES.ROOT.value) or current_user.has_role(
+        ADMIN_USER_ROLES.ADMIN.value)
 
     try:
         if strategy == SQL_RESULT_STRATEGIES.RENDER_JSON.value:
             with timeout(
-                seconds=10,
-                error_message="The query exceeded the 10 seconds timeout."):
+                    seconds=10,
+                    error_message="The query exceeded the 10 seconds timeout."):
                 result = get_sql_results(query_id, strategy=strategy)
             return jsonify(result)
         elif strategy == SQL_RESULT_STRATEGIES.SEND_TO_MAIL.value:
@@ -100,7 +101,8 @@ def execute_sql():
 @login_required
 def download_result():
     """ download given SQL query result """
-    permission = current_user.has_role(ADMIN_USER_ROLES.ROOT.value) or current_user.has_role(ADMIN_USER_ROLES.ADMIN.value)
+    permission = current_user.has_role(ADMIN_USER_ROLES.ROOT.value) or current_user.has_role(
+        ADMIN_USER_ROLES.ADMIN.value)
 
     if permission:
         sql_key = request.args.get('key')

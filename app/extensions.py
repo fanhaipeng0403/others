@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_gravatar import Gravatar
 from flask_mail import Mail
+from flask_admin import Admin
 
 cache = Cache()
 migrate = Migrate()
@@ -13,3 +14,5 @@ debug_toolbar = DebugToolbarExtension()
 login = LoginManager()
 gravatar = Gravatar()
 mail = Mail()
+admin =Admin()
+

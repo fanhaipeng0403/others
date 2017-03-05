@@ -5,7 +5,7 @@ from flask_login import login_required
 from sqlalchemy import text
 
 from app.extensions import db
-from app.utils import current_time
+from app.utils import current_time, get_from_cache, write_to_cache
 
 dashboard = Blueprint('dashboard', __name__)
 
@@ -21,13 +21,13 @@ def index():
 def visualization_summary_data():
     now = current_time().to(app.config['APP_TIMEZONE']).format('YYYY-MM-DD')
     index_time = current_time().replace(days=-2).format('YYYY-MM-DD')
-
     new_registration = db.engine.execute(
-        text("SELECT COUNT(*) FROM bi_user WHERE DATE(CONVERT_TZ(reg_time, '+00:00', '-05:00')) = :now"),
+        text("SELECT COUNT(*) FROM bi_user "
+             "WHERE DATE(CONVERT_TZ(reg_time, '+00:00', '-05:00')) = :now"),
         now=now).scalar()
     revenue = db.engine.execute(text(
         "SELECT ROUND(SUM(currency_amount), 2) FROM bi_user_bill WHERE currency_type = 'Dollar' AND DATE(CONVERT_TZ(created_at, '+00:00', '-05:00')) = :now"),
-                                now=now).scalar()
+        now=now).scalar()
     # game_dau = db.engine.execute(text("""
     #                                   SELECT Count(DISTINCT user_id)
     #                                   FROM   bi_user_currency
@@ -72,7 +72,8 @@ def visualization_summary_data():
 def visualization_executive_data():
     days_ago = request.args.get('days_ago')
     if days_ago is None:
-        start_time, end_time = request.args.get('date_range').split('  -  ')
+        date_range = request.args.get('date_range')
+        start_time, end_time = date_range.split('  -  ')
     else:
         now = current_time().to(app.config['APP_TIMEZONE'])
         end_time = now.replace(days=-1).format('YYYY-MM-DD')
@@ -80,11 +81,14 @@ def visualization_executive_data():
 
     game = request.args.get('game')
     platform = request.args.get('platform')
-
     report_type = request.args.get('report_type')
 
+    cache = get_from_cache(days_range, game, platform, report_type)
+    if cache:
+        return cache
     proxy = []
     if report_type == 'New Registration':
+
         proxy = db.engine.execute(text("""
                                        SELECT DATE(CONVERT_TZ(reg_time, '+00:00', '-05:00')) AS on_day,
                                               COUNT(*)
@@ -201,4 +205,7 @@ def visualization_executive_data():
     for row in proxy:
         labels.append(arrow.get(row[0]).format('YYYY-MM-DD'))
         data.append(row[1])
+
+    value = dict(labels=labels, data=data, game=game, platform=platform)
+    write_to_cache(value, game, platform, report_type)
     return jsonify(labels=labels, data=data, game=game, platform=platform)

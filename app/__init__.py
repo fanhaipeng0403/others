@@ -1,8 +1,8 @@
 from flask import Flask, render_template
 from flask_admin import Admin
 
-from app.assets import assets
-from app.extensions import cache, db, debug_toolbar, login, gravatar, mail
+from app.asset import assets
+from app.extensions import cache, db, debug_toolbar, login, gravatar, mail, redis_store
 from app.libs.json_encoder import FlaskJSONEncoder
 from app.libs.json_response import JSONResponse
 from app.models.bi import (BIUser,
@@ -60,6 +60,8 @@ def register_extensions(app):
     gravatar.init_app(app)
 
     assets.init_app(app)
+
+    redis_store.init_app(app)
 
     admin = Admin(app, index_view=AdminBaseIndexView(), url='/data')
     admin.add_view(AdminUserModelView(AdminUser, db.session, menu_icon_type='fa', menu_icon_value='fa-circle-o',
