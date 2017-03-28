@@ -2,7 +2,7 @@ from flask import Flask, render_template
 from flask_admin import Admin
 
 from app.asset import assets
-from app.extensions import cache, db, debug_toolbar, login, gravatar, mail, redis_store
+from app.extensions import cache, db, debug_toolbar, login, gravatar, mail
 from app.libs.json_encoder import FlaskJSONEncoder
 from app.libs.json_response import JSONResponse
 from app.models.bi import (BIUser,
@@ -35,7 +35,7 @@ def create_app(object_name, register_blueprint=True):
     app = Flask(__name__, static_folder='public', static_url_path='')
     app.config.from_object(object_name)
     app.json_encoder = FlaskJSONEncoder
-    app.response_class=JSONResponse
+    app.response_class = JSONResponse
 
     register_errorhandlers(app)
     register_extensions(app)
@@ -60,8 +60,6 @@ def register_extensions(app):
     gravatar.init_app(app)
 
     assets.init_app(app)
-
-    redis_store.init_app(app)
 
     admin = Admin(app, index_view=AdminBaseIndexView(), url='/data')
     admin.add_view(AdminUserModelView(AdminUser, db.session, menu_icon_type='fa', menu_icon_value='fa-circle-o',

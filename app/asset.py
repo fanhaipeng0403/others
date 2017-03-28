@@ -25,9 +25,15 @@ flask_admin_js = Bundle(
     output='static/js/flask_admin.js'
 )
 
+file_download_js = Bundle(
+    '../assets/js/filedownload.js',
+    filters='jsmin',
+    output='static/js/filedownload.js'
+)
 assets = Environment()
 
 assets.register('common_css', common_css)
 assets.register('common_js', common_js)
 assets.register('flask_admin_css', flask_admin_css)
 assets.register('flask_admin_js', flask_admin_js)
+assets.register('file_download_js', file_download_js)

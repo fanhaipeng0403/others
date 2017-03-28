@@ -16,17 +16,21 @@ from app.tasks.bi_user import process_bi_user
 from app.tasks.bi_user_bill import process_bi_user_bill
 from app.tasks.bi_user_currency import process_bi_user_currency
 from app.tasks.scheduled import process_bi
-
+from flask_assets import ManageAssets
+from app.asset import assets
 # default to dev config because no one should use this in
 # production anyway
 env = os.environ.get('WPT_DWH_ENV', 'dev')
 app = create_app('app.settings.%sConfig' % env.capitalize())
+
 
 manager = Manager(app)
 manager.add_command("server", Server(host='0.0.0.0'))
 manager.add_command("show-urls", ShowUrls())
 manager.add_command("clean", Clean())
 manager.add_command('db', MigrateCommand)
+manager.add_command("assets", ManageAssets(assets))
+#./manage.py assets rebuild
 
 
 @manager.shell
@@ -273,7 +277,5 @@ def process_bi_statistic_for_today():
 
 @manager.command
 def preset_cache():
-
-
-if __name__ == "__main__":
-    manager.run()
+    if __name__ == "__main__":
+        manager.run()
